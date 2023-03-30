@@ -1,0 +1,41 @@
+apiVersion: triggers.tekton.dev/v1beta1
+kind: TriggerTemplate
+metadata:
+  name: github-pr-trigger-template
+spec:
+  params:
+  - name: revision
+    default: main
+  - name: repo-url
+  resourcetemplates:
+  - apiVersion: tekton.dev/v1beta1
+    kind: PipelineRun
+    metadata:
+      generateName: clonar-crear-imagen-
+      namespace: tekton-argocd-example
+      labels:
+        pipeline: tekton
+        deploy: argocd
+    spec:
+      pipelineRef:
+        name: clone-build-push
+      podTemplate:
+        securityContext:
+          fsGroup: 65532
+      workspaces:
+      - name: shared-data
+        volumeClaimTemplate:
+          spec:
+            accessModes:
+            - ReadWriteOnce
+            resources:
+              requests:
+                storage: 1Gi
+      - name: docker-credentials
+        secret:
+          secretName: docker-credentials
+      params:
+      - name: repo-url
+        value: https://github.com/robertorodriguez98/tekton.git
+      - name: image-reference
+        value: robertorm/pruebatekton:v1
