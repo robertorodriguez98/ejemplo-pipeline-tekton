@@ -39,3 +39,31 @@ spec:
         value: https://github.com/robertorodriguez98/tekton.git
       - name: image-reference
         value: robertorm/pruebatekton:v1
+
+---
+
+apiVersion: triggers.tekton.dev/v1beta1
+kind: TriggerBinding
+metadata:
+  name: github-pr-trigger-binding
+spec:
+  params:
+  - name: revision
+    value: $(body.pull_request.head.sha)
+  - name: repo-url
+    value: $(body.repository.clone_url)
+
+---
+
+apiVersion: triggers.tekton.dev/v1beta1
+kind: EventListener
+metadata:
+  name: github-pr
+spec:
+  serviceAccountName: tekton-service-account
+  triggers:
+    - name: pr-trigger
+      bindings:
+        - ref: github-pr-trigger-binding
+      template:
+        ref: github-pr-trigger-template
